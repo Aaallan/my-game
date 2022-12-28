@@ -1,24 +1,27 @@
-import logo from "./logo.svg";
 import "./App.css";
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { Game } from "./Game/index";
 
 function App() {
+  const renderCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = renderCanvasRef.current;
+
+    const game = new Game(canvas!);
+
+    return () => {
+      game.destroy();
+    };
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div id="app">
+      <canvas
+        ref={renderCanvasRef}
+        id="renderCanvas"
+        touch-action="none"
+      ></canvas>
     </div>
   );
 }
