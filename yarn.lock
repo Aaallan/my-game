@@ -1082,6 +1082,11 @@
   resolved "https://registry.yarnpkg.com/@babylonjs/core/-/core-5.39.0.tgz#8343fdc2ef105005bc564fc98bd36008e4301d08"
   integrity sha512-bGDsxFbIq9GeiwpojdnQB58s1EvDxJSzUK5C8hL3Wj8UqK6tCELNTEHonmJ8KruilLGQRpm2mrrPZWEzUvAKkA==
 
+"@babylonjs/gui-editor@^5.39.0":
+  version "5.39.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/gui-editor/-/gui-editor-5.39.0.tgz#44a24521ce6b7b10090923fb068227282924329b"
+  integrity sha512-vGL5uT18ZoT2p1G+5BbGdoJdedTuVD6KldQz2UvIMpJ8Iuw0iEBoEW1Q8zHPwtubZbItRably0Q2sXiBNkUjSA==
+
 "@babylonjs/gui@^5.39.0":
   version "5.39.0"
   resolved "https://registry.yarnpkg.com/@babylonjs/gui/-/gui-5.39.0.tgz#0690b8b8cb4ef41e3f4c77dea06e2777e2978e7c"
@@ -1110,6 +1115,11 @@
   version "5.39.0"
   resolved "https://registry.yarnpkg.com/@babylonjs/procedural-textures/-/procedural-textures-5.39.0.tgz#d159eee51400cdb8a2e033e50fd44ada0b2f50bd"
   integrity sha512-vwvyx/3Cr2IDm0ulSYQYon+FEy4HR64pNXRXMQxKweA+QE7Ltr3svzE5oLAUyu0Rp9oDKiOGBOJQUwFEkcYMlw==
+
+"@babylonjs/serializers@^5.39.0":
+  version "5.39.0"
+  resolved "https://registry.yarnpkg.com/@babylonjs/serializers/-/serializers-5.39.0.tgz#54af6102305e7fecb7d3a395b9be3029b3a77bf0"
+  integrity sha512-V5Y5AXBvecPhM/GSpSfyMO6UpsRjEux432AB6KJhqH5oDX9gBdeAAUaaMN5FwESyxA5VNzTmXoRd+dimtVRLeQ==
 
 "@bcoe/v8-coverage@^0.2.3":
   version "0.2.3"
@@ -3033,6 +3043,16 @@ caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001400, caniuse-lite@^1.0.30001426:
   version "1.0.30001441"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001441.tgz#987437b266260b640a23cd18fbddb509d7f69f3e"
   integrity sha512-OyxRR4Vof59I3yGWXws6i908EtGbMzVUi3ganaZQHmydk1iwDhRnvaPG2WaR0KcqrDFKrxVZHULT396LEPhXfg==
+
+cannon-es@^0.20.0:
+  version "0.20.0"
+  resolved "https://registry.yarnpkg.com/cannon-es/-/cannon-es-0.20.0.tgz#bf2f62a674701f37e3d861c90668a32d4d32f082"
+  integrity sha512-eZhWTZIkFOnMAJOgfXJa9+b3kVlvG+FX4mdkpePev/w/rP5V8NRquGyEozcjPfEoXUlb+p7d9SUcmDSn14prOA==
+
+cannon@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/cannon/-/cannon-0.6.2.tgz#1e7bc72dd5841982f3c104c2bc578bfa4fb1c572"
+  integrity sha512-n/7wWSXr8KOSvjad2x0fJHgpMepKjOKi+NdSnjfYyijoDBZnp4JQKgPcpv28jlXoWM+N9zVYU09J0A6Qxx+Y7w==
 
 case-sensitive-paths-webpack-plugin@^2.4.0:
   version "2.4.0"
