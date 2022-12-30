@@ -1,19 +1,27 @@
 import {
+  AnimationGroup,
   ArcRotateCamera,
   KeyboardEventTypes,
   Mesh,
   MeshBuilder,
   PBRMaterial,
   PhysicsImpostor,
+  SceneLoader,
+  Space,
   TargetCamera,
+  TransformNode,
   Vector3,
 } from "@babylonjs/core";
 import { Game } from ".";
+import "@babylonjs/loaders";
 import { GameObject } from "./Types/GameObject";
 
 export class Player extends GameObject {
   playerCam: TargetCamera;
   playerShell: Mesh;
+  playerAvatar: TransformNode & {
+    animationGroups: AnimationGroup[];
+  };
 
   movementState = {
     moveForward: false,
@@ -35,15 +43,37 @@ export class Player extends GameObject {
     this.playerShell = playerShell;
 
     playerShell.position.y = 1.8;
+    playerShell.visibility = 0;
 
-    // testing gun
-    const gun = MeshBuilder.CreateSphere(`gun`, {
-      diameter: 0.3,
-    });
+    const playerAvatar = new TransformNode(`playerAvatar`);
 
-    gun.parent = playerShell;
+    const _playerAvatar = (this.playerAvatar = playerAvatar as any);
 
-    gun.position = new Vector3(0, 1, 1);
+    playerAvatar.parent = playerShell;
+
+    SceneLoader.ImportMesh(
+      ``,
+      "./",
+      "playerAvatar.glb",
+      scene,
+      function (meshes, particleSystems, skeletons, ags) {
+        _playerAvatar.animationGroups = ags;
+
+        meshes[0].parent = playerAvatar;
+
+        playerAvatar.scaling = new Vector3().setAll(3);
+
+        ags.map((ag) => {
+          if (ag.name === `Idle`) {
+            ag.play(true);
+          } else {
+            ag.stop();
+          }
+
+          return true;
+        });
+      }
+    );
 
     // testing material
     const _mat = new PBRMaterial(``);
@@ -51,7 +81,6 @@ export class Player extends GameObject {
     _mat.metallic = 0.1;
 
     playerShell.material = _mat;
-    gun.material = _mat;
 
     playerShell.physicsImpostor = new PhysicsImpostor(
       playerShell,
@@ -64,18 +93,18 @@ export class Player extends GameObject {
       "playerCam",
       -Math.PI / 2,
       Math.PI / 5,
-      40,
-      playerShell.position.add(new Vector3(0, -5, 0))
+      30,
+      playerShell.position.add(new Vector3(0, 0, -5))
     );
 
     this.playerCam = camera;
 
     camera.parent = playerShell;
 
-    this.handleMovement();
+    this.playerMovementKeypress();
   }
 
-  handleMovement() {
+  playerMovementKeypress() {
     const __this__ = this;
 
     const scene = this.scene;
@@ -121,12 +150,39 @@ export class Player extends GameObject {
     });
   }
 
+  handleAimingMovement() {
+    const __this__ = this;
+
+    const scene = __this__.scene;
+
+    const { pickedPoint } = scene.pick(
+      scene.pointerX,
+      scene.pointerY,
+      (m) => m.isVisible && m.isEnabled() && m.isPickable
+    );
+
+    if (pickedPoint) {
+      __this__.playerAvatar.lookAt(
+        new Vector3(
+          pickedPoint.x,
+          __this__.playerAvatar.absolutePosition.y,
+          pickedPoint.z
+        ),
+        undefined,
+        undefined,
+        undefined,
+        Space.WORLD
+      );
+    }
+  }
+
   onTick() {
     const __this__ = this;
 
     const scene = __this__.scene;
 
     const playerImposter = __this__.playerShell.physicsImpostor!;
+    const ags = __this__.playerAvatar.animationGroups;
 
     // if (__this__.movementState.jump) {
     //   playerImposter.applyImpulse(
@@ -159,7 +215,17 @@ export class Player extends GameObject {
 
     __this__.playerShell.position.addInPlace(movement);
 
+    if (ags) {
+      if (movement.equalsToFloats(0, 0, 0)) {
+        ags.find((ag) => ag.name === `Run`)?.stop();
+      } else {
+        ags.find((ag) => ag.name === `Run`)?.play(true);
+      }
+    }
+
     playerImposter.setAngularVelocity(new Vector3().setAll(0));
+
+    this.handleAimingMovement();
   }
 
   destroy() {}
