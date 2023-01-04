@@ -1,18 +1,25 @@
 import {
   CubeTexture,
+  Mesh,
   MeshBuilder,
   PBRMaterial,
   PhysicsImpostor,
 } from "@babylonjs/core";
 import { Game } from ".";
+import { STATE } from "./STATE";
 import { GameObject } from "./Types/GameObject";
+import { createInnerPoints } from "./Util";
 
 export class Environment extends GameObject {
+  ground!: Mesh;
+
   constructor(game: Game) {
     super(game);
 
     this._createEnv();
     this._createGround();
+
+    STATE.environment = this;
   }
 
   _createEnv() {
@@ -40,6 +47,8 @@ export class Environment extends GameObject {
       height: 30,
     });
 
+    this.ground = ground;
+
     const gorundMat = new PBRMaterial(`groundMat`);
 
     gorundMat.metallic = 0.1;
@@ -52,6 +61,10 @@ export class Environment extends GameObject {
       { mass: 0, restitution: 0.9 },
       this.scene
     );
+  }
+
+  getRandomPointOnGround() {
+    return createInnerPoints(this.ground, 1)![0];
   }
 
   onTick() {}

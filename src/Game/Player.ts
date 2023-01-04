@@ -4,7 +4,6 @@ import {
   KeyboardEventTypes,
   Mesh,
   MeshBuilder,
-  PBRMaterial,
   PhysicsImpostor,
   SceneLoader,
   Space,
@@ -12,16 +11,17 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
-import { Game } from ".";
 import "@babylonjs/loaders";
+import { Game } from ".";
 import { GameObject } from "./Types/GameObject";
 
 export class Player extends GameObject {
   playerCam: TargetCamera;
-  playerShell: Mesh;
+  playerRoot: TransformNode;
   playerAvatar: TransformNode & {
     animationGroups: AnimationGroup[];
   };
+  playerShell: Mesh;
 
   movementState = {
     moveForward: false,
@@ -36,20 +36,25 @@ export class Player extends GameObject {
 
     const scene = this.scene;
 
+    const playerRoot = new TransformNode(`playerRoot`);
+    const playerAvatar = new TransformNode(`playerAvatar`);
+
+    this.playerRoot = playerRoot;
+
+    const _playerAvatar = (this.playerAvatar = playerAvatar as any);
+
+    playerAvatar.parent = playerRoot;
+
     const playerShell = MeshBuilder.CreateCapsule(`playerShell`, {
       height: 1.8,
     });
 
     this.playerShell = playerShell;
 
-    playerShell.position.y = 1.8;
+    playerShell.parent = playerRoot;
+
+    playerShell.position.y = 1.8 / 2;
     playerShell.visibility = 0;
-
-    const playerAvatar = new TransformNode(`playerAvatar`);
-
-    const _playerAvatar = (this.playerAvatar = playerAvatar as any);
-
-    playerAvatar.parent = playerShell;
 
     SceneLoader.ImportMesh(
       ``,
@@ -76,30 +81,32 @@ export class Player extends GameObject {
     );
 
     // testing material
-    const _mat = new PBRMaterial(``);
+    // const _mat = new PBRMaterial(``);
 
-    _mat.metallic = 0.1;
+    // _mat.metallic = 0.1;
 
-    playerShell.material = _mat;
+    // playerShell.material = _mat;
 
-    playerShell.physicsImpostor = new PhysicsImpostor(
-      playerShell,
-      PhysicsImpostor.BoxImpostor,
-      { mass: 0, restitution: 0 },
-      scene
-    );
+    // playerShell.physicsImpostor = new PhysicsImpostor(
+    //   playerShell,
+    //   PhysicsImpostor.BoxImpostor,
+    //   { mass: 0, restitution: 0 },
+    //   scene
+    // );
 
+    // https://doc.babylonjs.com/features/featuresDeepDive/cameras/camera_introduction#arc-rotate-camera
     const camera = new ArcRotateCamera(
       "playerCam",
       -Math.PI / 2,
+      // Math.PI / 2.1,
       Math.PI / 5,
       30,
-      playerShell.position.add(new Vector3(0, 0, -5))
+      playerRoot.position.add(new Vector3(0, 0, -5))
     );
 
     this.playerCam = camera;
 
-    camera.parent = playerShell;
+    camera.parent = playerRoot;
 
     this.playerMovementKeypress();
   }
@@ -213,7 +220,7 @@ export class Player extends GameObject {
       new Vector3().setAll((scene.deltaTime || 0) / 200)
     );
 
-    __this__.playerShell.position.addInPlace(movement);
+    __this__.playerRoot.position.addInPlace(movement);
 
     if (ags) {
       if (movement.equalsToFloats(0, 0, 0)) {
@@ -223,7 +230,7 @@ export class Player extends GameObject {
       }
     }
 
-    playerImposter.setAngularVelocity(new Vector3().setAll(0));
+    // playerImposter.setAngularVelocity(new Vector3().setAll(0));
 
     this.handleAimingMovement();
   }

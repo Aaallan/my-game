@@ -1,6 +1,7 @@
-import { Engine, Scene } from "@babylonjs/core";
+import { Engine, Mesh, Scene } from "@babylonjs/core";
 import "@babylonjs/inspector";
 import * as CANNON from "cannon-es";
+import { Enemy } from "./Enemy";
 import { Environment } from "./Environment";
 import { Player } from "./Player";
 
@@ -32,13 +33,15 @@ export class Game {
     new Environment(__this__);
     new Player(__this__);
 
+    Enemy.init(__this__);
+
     __this__.engine.runRenderLoop(() => {
       __this__.scene.render();
     });
 
-    // this.scene.debugLayer.show({
-    //   initialTab: 2,
-    // });
+    this.scene.debugLayer.show({
+      initialTab: 2,
+    });
   }
 
   destroy() {
