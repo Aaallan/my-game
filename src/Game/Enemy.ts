@@ -3,6 +3,7 @@ import {
   MeshBuilder,
   Scene,
   SceneLoader,
+  Tools,
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
@@ -34,7 +35,7 @@ export class Enemy extends GameObject {
     SceneLoader.ImportMesh(
       ``,
       "./",
-      "playerAvatar.glb",
+      "enemyAvatar.glb",
       scene,
       function (meshes, particleSystems, skeletons, ags) {
         const _enemyAvatar = enemyAvatar as any;
@@ -42,6 +43,8 @@ export class Enemy extends GameObject {
         _enemyAvatar.animationGroups = ags;
 
         meshes[0].parent = enemyAvatar;
+
+        enemyAvatar.rotation.y = Tools.ToRadians(180);
 
         enemyAvatar.scaling = new Vector3().setAll(3);
 

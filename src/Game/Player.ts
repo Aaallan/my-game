@@ -8,6 +8,7 @@ import {
   SceneLoader,
   Space,
   TargetCamera,
+  Tools,
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
@@ -65,6 +66,8 @@ export class Player extends GameObject {
         _playerAvatar.animationGroups = ags;
 
         meshes[0].parent = playerAvatar;
+
+        playerAvatar.rotation.y = Tools.ToRadians(180);
 
         playerAvatar.scaling = new Vector3().setAll(3);
 

@@ -39,9 +39,9 @@ export class Game {
       __this__.scene.render();
     });
 
-    this.scene.debugLayer.show({
-      initialTab: 2,
-    });
+    // this.scene.debugLayer.show({
+    //   initialTab: 2,
+    // });
   }
 
   destroy() {
