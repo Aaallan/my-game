@@ -14,6 +14,7 @@ import {
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { Game } from ".";
+import { STATE } from "./STATE";
 import { GameObject } from "./Types/GameObject";
 
 export class Player extends GameObject {
@@ -112,6 +113,8 @@ export class Player extends GameObject {
     camera.parent = playerRoot;
 
     this.playerMovementKeypress();
+
+    STATE.player = this;
   }
 
   playerMovementKeypress() {
