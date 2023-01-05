@@ -6,14 +6,16 @@ import {
   Tools,
   TransformNode,
   Vector3,
+  setAndStartTimer,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { Game } from ".";
-import { STATE } from "./STATE";
+import { EVENT_MANAGER, STATE } from "./STATE";
 import { GameObject } from "./Types/GameObject";
 
 export class Enemy extends GameObject {
   static enemyRootOrigin: TransformNode;
+  static enemies: Enemy[] = [];
 
   static init(game: Game) {
     const scene = game.scene;
@@ -58,15 +60,33 @@ export class Enemy extends GameObject {
           return true;
         });
 
-        new Enemy(game);
-        new Enemy(game);
-        new Enemy(game);
+        EVENT_MANAGER.onEnemyInit.notifyObservers(undefined);
       }
     );
 
     enemyRoot.setEnabled(false);
 
     Enemy.enemyRootOrigin = enemyRoot;
+
+    EVENT_MANAGER.onEnemyInit.addOnce(() => {
+      Enemy._spawn(game);
+    });
+  }
+
+  static _spawn(game: Game) {
+    const scene = game.scene;
+
+    setAndStartTimer({
+      timeout: 1000 * 3,
+      contextObservable: scene.onBeforeRenderObservable,
+      onEnded: () => {
+        if (Enemy.enemies.length < 2) {
+          new Enemy(game);
+        }
+
+        Enemy._spawn(game);
+      },
+    });
   }
 
   constructor(game: Game) {
@@ -81,6 +101,8 @@ export class Enemy extends GameObject {
     const spawnPoint = environment.getRandomPointOnGround();
 
     enemyInstance.position = spawnPoint;
+
+    Enemy.enemies.push(this);
   }
 
   handleAimingMovement() {
