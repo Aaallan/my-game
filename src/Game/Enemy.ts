@@ -12,6 +12,7 @@ import {
   AssetContainer,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
+import { nanoid } from "nanoid";
 import { Game } from ".";
 import { Player } from "./Player";
 import { EVENT_MANAGER, STATE } from "./STATE";
@@ -20,6 +21,12 @@ import { GameObject } from "./Types/GameObject";
 export class Enemy extends GameObject {
   static enemyAssetContainer: AssetContainer;
   static enemies: Enemy[] = [];
+
+  id: string;
+  enemyRoot: TransformNode;
+  enemyAvatar: TransformNode & {
+    animationGroups: AnimationGroup[];
+  };
 
   static init(game: Game) {
     const scene = game.scene;
@@ -56,32 +63,33 @@ export class Enemy extends GameObject {
     });
   }
 
-  enemyRoot: TransformNode;
-  enemyAvatar: TransformNode & {
-    animationGroups: AnimationGroup[];
-  };
-
   constructor(game: Game) {
     super(game);
 
     const scene = this.scene;
 
+    const id = (this.id = nanoid());
+
     const {
       rootNodes: [rootNode],
       animationGroups: ags,
-    } = Enemy.enemyAssetContainer.instantiateModelsToScene(undefined, false, {
-      doNotInstantiate: true,
-    });
+    } = Enemy.enemyAssetContainer.instantiateModelsToScene(
+      (sn) => `${sn}_${id}`,
+      false,
+      {
+        doNotInstantiate: true,
+      }
+    );
 
-    const enemyRoot = (this.enemyRoot = new TransformNode(`enemyRoot`));
-    this.enemyAvatar = new TransformNode(`enemyAvatar`) as any;
+    const enemyRoot = (this.enemyRoot = new TransformNode(`enemyRoot_${id}`));
+    this.enemyAvatar = new TransformNode(`enemyAvatar_${id}`) as any;
 
     this.enemyAvatar.animationGroups = ags;
 
     this.enemyAvatar.parent = enemyRoot;
     rootNode.parent = this.enemyAvatar;
 
-    const enemyShell = MeshBuilder.CreateCapsule(`enemyShell`, {
+    const enemyShell = MeshBuilder.CreateCapsule(`enemyShell_${id}`, {
       height: 1.8,
     });
 
@@ -106,6 +114,8 @@ export class Enemy extends GameObject {
       } else {
         ag.stop();
       }
+
+      return true;
     });
 
     Enemy.enemies.push(this);
