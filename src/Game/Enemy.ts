@@ -13,6 +13,7 @@ import {
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { Game } from ".";
+import { Player } from "./Player";
 import { EVENT_MANAGER, STATE } from "./STATE";
 import { GameObject } from "./Types/GameObject";
 
@@ -135,7 +136,7 @@ export class Enemy extends GameObject {
       .normalize();
 
     const movement = direction.multiplyInPlace(
-      new Vector3().setAll((scene.deltaTime || 0) / 600)
+      new Vector3().setAll(((scene.deltaTime || 0) * Player.SPEED) / 3)
     );
 
     __this__.enemyAvatar.position.addInPlace(movement);

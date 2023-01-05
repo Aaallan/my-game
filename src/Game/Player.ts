@@ -18,6 +18,8 @@ import { STATE } from "./STATE";
 import { GameObject } from "./Types/GameObject";
 
 export class Player extends GameObject {
+  static SPEED = 1 / 200;
+
   playerCam: TargetCamera;
   playerRoot: TransformNode;
   playerAvatar: TransformNode & {
@@ -223,7 +225,7 @@ export class Player extends GameObject {
     }
 
     const movement = direction.multiplyInPlace(
-      new Vector3().setAll((scene.deltaTime || 0) / 200)
+      new Vector3().setAll((scene.deltaTime || 0) * Player.SPEED)
     );
 
     __this__.playerRoot.position.addInPlace(movement);
