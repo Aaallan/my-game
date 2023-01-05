@@ -9,4 +9,5 @@ export class STATE {
 
 export class EVENT_MANAGER {
   static onEnemyInit = new Observable();
+  static onEnemyPlayerIntersect = new Observable();
 }

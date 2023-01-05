@@ -10,6 +10,9 @@ import {
   Space,
   AnimationGroup,
   AssetContainer,
+  ActionManager,
+  ExecuteCodeAction,
+  InstantiatedEntries,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { nanoid } from "nanoid";
@@ -20,13 +23,15 @@ import { GameObject } from "./Types/GameObject";
 
 export class Enemy extends GameObject {
   static enemyAssetContainer: AssetContainer;
-  static enemies: Enemy[] = [];
+  static enemies = new Map<string, Enemy>();
 
   id: string;
   enemyRoot: TransformNode;
   enemyAvatar: TransformNode & {
     animationGroups: AnimationGroup[];
   };
+  enemyShell: Mesh;
+  enemyInstantiatedEntries: InstantiatedEntries;
 
   static init(game: Game) {
     const scene = game.scene;
@@ -54,7 +59,7 @@ export class Enemy extends GameObject {
       timeout: 1000 * 3,
       contextObservable: scene.onBeforeRenderObservable,
       onEnded: () => {
-        if (Enemy.enemies.length < 2) {
+        if (Enemy.enemies.size < 2) {
           new Enemy(game);
         }
 
@@ -70,16 +75,19 @@ export class Enemy extends GameObject {
 
     const id = (this.id = nanoid());
 
+    const container = (this.enemyInstantiatedEntries =
+      Enemy.enemyAssetContainer.instantiateModelsToScene(
+        (sn) => `${sn}_${id}`,
+        false,
+        {
+          doNotInstantiate: true,
+        }
+      ));
+
     const {
       rootNodes: [rootNode],
       animationGroups: ags,
-    } = Enemy.enemyAssetContainer.instantiateModelsToScene(
-      (sn) => `${sn}_${id}`,
-      false,
-      {
-        doNotInstantiate: true,
-      }
-    );
+    } = container;
 
     const enemyRoot = (this.enemyRoot = new TransformNode(`enemyRoot_${id}`));
     this.enemyAvatar = new TransformNode(`enemyAvatar_${id}`) as any;
@@ -89,9 +97,12 @@ export class Enemy extends GameObject {
     this.enemyAvatar.parent = enemyRoot;
     rootNode.parent = this.enemyAvatar;
 
-    const enemyShell = MeshBuilder.CreateCapsule(`enemyShell_${id}`, {
-      height: 1.8,
-    });
+    const enemyShell = (this.enemyShell = MeshBuilder.CreateCapsule(
+      `enemyShell_${id}`,
+      {
+        height: 1.8,
+      }
+    ));
 
     enemyShell.parent = enemyRoot;
 
@@ -118,7 +129,9 @@ export class Enemy extends GameObject {
       return true;
     });
 
-    Enemy.enemies.push(this);
+    Enemy.enemies.set(id, this);
+
+    this._handlePlayerIntersect();
   }
 
   handleMovement() {
@@ -142,14 +155,14 @@ export class Enemy extends GameObject {
     );
 
     const direction = playerPos
-      .subtract(__this__.enemyAvatar.absolutePosition)
+      .subtract(__this__.enemyRoot.absolutePosition)
       .normalize();
 
     const movement = direction.multiplyInPlace(
       new Vector3().setAll(((scene.deltaTime || 0) * Player.SPEED) / 3)
     );
 
-    __this__.enemyAvatar.position.addInPlace(movement);
+    __this__.enemyRoot.position.addInPlace(movement);
 
     if (ags) {
       if (movement.equalsToFloats(0, 0, 0)) {
@@ -168,5 +181,58 @@ export class Enemy extends GameObject {
     this.handleMovement();
   }
 
-  destroy() {}
+  _handlePlayerIntersect() {
+    const __this__ = this;
+
+    const scene = __this__.scene;
+
+    const { playerShell } = STATE.player;
+
+    const am = new ActionManager(scene);
+
+    am.registerAction(
+      new ExecuteCodeAction(
+        {
+          trigger: ActionManager.OnIntersectionEnterTrigger,
+          parameter: playerShell,
+        },
+        () => {
+          __this__.destroy.call(__this__);
+        }
+      )
+    );
+
+    __this__.enemyShell.actionManager = am;
+  }
+
+  destroy() {
+    super.destroy();
+
+    const { rootNodes, skeletons, animationGroups } =
+      this.enemyInstantiatedEntries;
+
+    rootNodes.map((n) => {
+      n.dispose();
+
+      return true;
+    });
+
+    skeletons.map((n) => {
+      n.dispose();
+
+      return true;
+    });
+
+    animationGroups.map((n) => {
+      n.dispose();
+
+      return true;
+    });
+
+    this.enemyRoot.dispose();
+    this.enemyAvatar.dispose();
+    this.enemyShell.dispose();
+
+    Enemy.enemies.delete(this.id);
+  }
 }
