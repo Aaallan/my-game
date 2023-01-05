@@ -5,6 +5,9 @@ import {
   Mesh,
   MeshBuilder,
   PhysicsImpostor,
+  PointerEventTypes,
+  Ray,
+  RayHelper,
   SceneLoader,
   Space,
   TargetCamera,
@@ -14,8 +17,9 @@ import {
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { Game } from ".";
-import { STATE } from "./STATE";
+import { EVENT_MANAGER, STATE } from "./STATE";
 import { GameObject } from "./Types/GameObject";
+import { thickRayCast } from "./Util";
 
 export class Player extends GameObject {
   static SPEED = 1 / 200;
@@ -105,6 +109,7 @@ export class Player extends GameObject {
       "playerCam",
       -Math.PI / 2,
       // Math.PI / 2.1,
+      // -Math.PI,
       Math.PI / 5,
       30,
       playerRoot.position.add(new Vector3(0, 0, -5))
@@ -115,6 +120,7 @@ export class Player extends GameObject {
     camera.parent = playerRoot;
 
     this.playerMovementKeypress();
+    this.playerPointerEvent();
 
     STATE.player = this;
   }
@@ -178,17 +184,74 @@ export class Player extends GameObject {
 
     if (pickedPoint) {
       __this__.playerAvatar.lookAt(
-        new Vector3(
-          pickedPoint.x,
-          __this__.playerAvatar.absolutePosition.y,
-          pickedPoint.z
-        ),
+        new Vector3(pickedPoint.x, 0, pickedPoint.z),
         undefined,
         undefined,
         undefined,
         Space.WORLD
       );
+
+      return {
+        pickedPoint: new Vector3(pickedPoint.x, 0, pickedPoint.z),
+      };
     }
+
+    return { pickedPoint: undefined };
+  }
+
+  playerPointerEvent() {
+    const __this__ = this;
+
+    const scene = this.scene;
+
+    scene.onPointerObservable.add((pointerInfo) => {
+      switch (pointerInfo.type) {
+        case PointerEventTypes.POINTERDOWN:
+          __this__._fire.call(__this__);
+
+          break;
+      }
+    });
+  }
+
+  _fire() {
+    const __this__ = this;
+
+    const scene = this.scene;
+
+    const { pickedPoint } = __this__.handleAimingMovement.call(__this__);
+
+    if (pickedPoint) {
+      const PATH_WIDTH = 0.3;
+
+      const pickingInfos = thickRayCast(__this__.playerAvatar, {
+        thickness: PATH_WIDTH,
+        localY: 0.1,
+        predicate: (n) => {
+          return (n as any).isEnemy;
+        },
+      });
+
+      new Set<string>(
+        pickingInfos
+          .filter((pi) => {
+            if (pi && pi.hit && pi.pickedMesh) {
+              return true;
+            }
+
+            return false;
+          })
+          .map((pi) => {
+            const enemyShell = pi?.pickedMesh!;
+
+            return enemyShell.id;
+          })
+      ).forEach((enemyId) => {
+        EVENT_MANAGER.onBulletHitEnemy.notifyObservers(enemyId);
+      });
+    }
+
+    console.log(EVENT_MANAGER.onBulletHitEnemy.observers.length);
   }
 
   onTick() {

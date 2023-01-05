@@ -5,7 +5,66 @@ import {
   VertexBuffer,
   Axis,
   Scalar,
+  TransformNode,
+  AbstractMesh,
+  RayHelper,
+  MeshBuilder,
+  Tools,
 } from "@babylonjs/core";
+
+/**
+ * Similar to Unity3D SphereCast but only with one layer
+ * @param originalNode
+ * @param options thickness: (radius or width) * 2
+ */
+export function thickRayCast(
+  originalNode: TransformNode | AbstractMesh,
+  options: {
+    thickness: number;
+    localY: number;
+    predicate?: (am: AbstractMesh) => boolean;
+  } = {
+    thickness: 0.5,
+    localY: 1,
+  }
+) {
+  const { thickness, localY, predicate } = options;
+
+  const scene = originalNode.getScene();
+
+  // find or create TransformNodes for thick ray origin
+  let trcNodes = originalNode.getChildTransformNodes(
+    true,
+    (n) => (n as any).isTrc
+  );
+
+  if (!trcNodes.length) {
+    trcNodes = [0, thickness / 2, thickness / -2].map((radius) => {
+      const trcNode = new TransformNode(`trcNode_${radius}`);
+
+      (trcNode as any).isTrc = true;
+
+      trcNode.parent = originalNode;
+
+      trcNode.setPositionWithLocalVector(new Vector3(radius, localY, 0));
+
+      return trcNode;
+    });
+  }
+
+  return trcNodes.map((trcNode) => {
+    const originalPoint = trcNode.absolutePosition;
+    const direction = trcNode.forward;
+
+    const thickRay = new Ray(originalPoint, direction);
+
+    // const rayHelper = new RayHelper(thickRay);
+
+    // rayHelper.show(scene);
+
+    return scene.pickWithRay(thickRay, predicate);
+  });
+}
 
 export function createInnerPoints(mesh: Mesh, pointsNb: number) {
   var boundInfo = mesh.getBoundingInfo();

@@ -13,6 +13,7 @@ import {
   ActionManager,
   ExecuteCodeAction,
   InstantiatedEntries,
+  Observer,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { nanoid } from "nanoid";
@@ -32,6 +33,7 @@ export class Enemy extends GameObject {
   };
   enemyShell: Mesh;
   enemyInstantiatedEntries: InstantiatedEntries;
+  onBulletHitEnemy: Observer<string>;
 
   static init(game: Game) {
     const scene = game.scene;
@@ -104,6 +106,9 @@ export class Enemy extends GameObject {
       }
     ));
 
+    enemyShell.id = id;
+    (enemyShell as any).isEnemy = true;
+
     enemyShell.parent = enemyRoot;
 
     enemyShell.visibility = 0;
@@ -132,6 +137,12 @@ export class Enemy extends GameObject {
     Enemy.enemies.set(id, this);
 
     this._handlePlayerIntersect();
+
+    this.onBulletHitEnemy = EVENT_MANAGER.onBulletHitEnemy.add((enemyId) => {
+      if (enemyId === id) {
+        this.destroy.call(this);
+      }
+    })!;
   }
 
   handleMovement() {
@@ -197,7 +208,7 @@ export class Enemy extends GameObject {
           parameter: playerShell,
         },
         () => {
-          __this__.destroy.call(__this__);
+          // __this__.destroy.call(__this__);
         }
       )
     );
@@ -207,6 +218,8 @@ export class Enemy extends GameObject {
 
   destroy() {
     super.destroy();
+
+    EVENT_MANAGER.onBulletHitEnemy.remove(this.onBulletHitEnemy);
 
     const { rootNodes, skeletons, animationGroups } =
       this.enemyInstantiatedEntries;
